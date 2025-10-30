@@ -1,0 +1,109 @@
+version: 2
+
+models:
+  - name: src_chip_plays
+    description: Various chips played in a GameWeek.
+    columns:
+      - name: chip_name
+        description: Name of the chip played
+        tests:
+          - accepted_values:
+               values: ['bboost', 'freehit', 'wildcard','3xc']
+          - not_null
+      - name: num_played
+        description: Number of players played this chip in this game week.
+        tests:
+          - not_null
+
+
+  - name: src_element_stats
+    description: It consists of various term's used in other views.
+    columns:
+      - name: Minutes played
+        description: Number of min's played by a player.
+
+  - name: src_element_types
+    description: Types of element's or players position.
+    columns:
+      - name: plural_name
+        tests:
+          - not_null
+
+  - name: src_elements
+    description: It contains information about player's game week performance.
+    columns:
+      - name: id
+        tests:
+          - not_null
+
+      - name: second_name
+        tests:
+          - not_null
+
+      - name: web_name
+        tests:
+          - not_null
+
+  - name: src_epl_data_table
+    description: It contains various term's used in squad definition's and Fantasy draft.
+    columns:
+      - name: game_settings__squad_squadsize
+        tests:
+          - not_null
+  - name: src_events
+    description: It records each game week info like deadline time and highest score of fantasy user.
+    columns:
+      - name: id
+        tests:
+          - not_null
+      - name: most_captained
+        
+  - name: src_game_settings_percentile_ranks
+    description: It has percentile information
+    columns:
+      - name: value
+
+
+  - name: src_phases
+    description: It has information about which game week's fall's in a month.
+    columns:
+      - name: id
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null
+
+  - name: src_teams
+    description: This has information about teams.
+    columns:
+      - name: name
+        tests:
+          - not_null
+      - name: id
+        tests:
+          - not_null
+
+  - name: src_tiebreak_stata
+    description: Information about tie-break's.
+    columns:
+      - name: value
+        tests:
+         - not_null
+  
+  - name: src_matches
+    description: Results for the fixtures and which player score's a goal, assist, red-card and yellow-card information
+    columns:
+     - name: finished
+       tests:
+        - accepted_values:
+            values: ['true', 'false']
+     
+
+
+
+
+
+
+
+

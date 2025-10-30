@@ -3,4 +3,15 @@ name = "epl-new"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "dagster>=1.11.15",
+    "dagster-dbt>=0.27.15",
+    "dagster-dg-cli>=1.11.15",
+    "dagster-webserver>=1.11.15",
+    "dbt-duckdb>=1.9.6",
+    "dlt[duckdb]>=1.17.1",
+    "matplotlib>=3.10.7",
+    "mplsoccer>=1.6.0",
+    "pandas>=2.3.3",
+    "streamlit>=1.50.0",
+]

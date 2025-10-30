@@ -1,0 +1,125 @@
+version: 2
+
+models:
+  - name: dim_goals_conceded_away
+    description: Away Goals conceded a Team
+    columns:
+      - name: club
+        description: Name of Team
+        tests:
+          - unique
+          - not_null
+      - name: Season
+        descriptioin: This column indcates the the season team playing.
+        tests:
+          - not_null
+  - name: dim_goals_conceded_home
+    columns:
+      - name: club
+        tests:
+          - unique
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+  - name: dim_goals_scored_away
+    columns:
+      - name: club
+        tests:
+          - unique
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+  - name: dim_goals_scored_home
+    columns:
+      - name: club
+        tests:
+          - not_null
+          - unique
+      - name: Season
+        tests:
+          - not_null
+  - name: dim_injury
+    columns:
+      - name: Name
+        tests:
+          - not_null
+      - name: Club
+        tests:
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+  - name: dim_results
+    columns:
+      - name: Away_team
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: kickoff_time
+        tests:
+          - not_null
+      - name: HOME_TEAM
+        tests:
+          - not_null
+  - name: dim_standings
+    columns:
+      - name: TEAM
+        tests:
+          - unique
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+          
+  - name: dim_team_goals_scored_diffrence
+    columns:
+      - name: Club
+        tests:
+          - not_null
+          - unique
+      - name: Season
+        tests:
+          - not_null
+  - name: dim_team_of_gameweek
+    columns:
+      - name: player_name
+        tests:
+          - not_null
+      - name: club
+        tests:
+          - not_null
+      - name: gameweek
+        tests:
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+      
+  - name: dim_transfers_in_gameweek
+    columns:
+      - name: Name
+        tests:
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+          
+      - name: gameweek
+        tests:
+          - not_null
+  - name: dim_transfers_out_gameweek
+    columns:
+      - name: Name
+        tests:
+          - not_null
+      - name: Season
+        tests:
+          - not_null
+          
+      - name: gameweek
+        tests:
+          - not_null

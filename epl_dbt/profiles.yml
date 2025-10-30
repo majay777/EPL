@@ -1,0 +1,10 @@
+epl_data:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: '../{{ env_var("DUCKDB_DATABASE", "epl_duckdb.duckdb") }}'
+
+      extensions:
+        - httpfs
+        - parquet

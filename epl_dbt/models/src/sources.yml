@@ -1,0 +1,45 @@
+version: 2
+
+
+sources:
+  - name: epl_duckdb
+    database: "epl_duckdb"
+    schema: epl_data
+
+    tables:
+      - name: element_stats
+        identifier: epl_raw_table__element_stats
+
+      - name: epl_raw_table
+        identifier: epl_raw_table
+
+
+      - name: element_types
+        identifier: epl_raw_table__element_types
+
+      - name: sub_positions_locked
+        identifier: epl_raw_table__element_types__sub_positions_locked
+
+      - name: elements
+        identifier: epl_raw_table__elements
+
+      - name: events
+        identifier: epl_raw_table__events
+
+      - name: chip_plays
+        identifier: epl_raw_table__events__chip_plays
+
+      - name: league_h2h_tiebreak_stats
+        identifier: epl_raw_table__game_settings__league_h2h_tiebreak_stats
+
+      - name: percentile_ranks
+        identifier: epl_raw_table__game_settings__percentile_ranks
+
+      - name: phases
+        identifier: epl_raw_table__phases
+
+      - name: teams
+        identifier: epl_raw_table__teams
+      
+      - name: matches
+        identifier: matches
