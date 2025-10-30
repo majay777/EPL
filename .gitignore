@@ -1,0 +1,49 @@
+# --- dbt ---
+target/
+dbt_modules/
+logs/
+.dbt/
+
+# profiles.yaml - store locally, do not commit
+profiles.yml
+profiles.yaml
+
+# dbt artifacts
+manifest.json
+run_results.json
+
+# --- DuckDB database files ---
+*.duckdb
+*.duckdb.wal
+
+# --- Dagster ---
+.dagster_home/
+
+# Dagster run logs
+dagster.logs/
+storage/
+tmp/
+
+# --- Python environment ---
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+pip-wheel-metadata/
+
+# --- IDE / Editor files ---
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# -- .env
+.env
