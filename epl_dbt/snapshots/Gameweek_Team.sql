@@ -13,3 +13,5 @@
 select * from  {{ ref("dim_team_of_gameweek") }}
 
 {% endsnapshot %}
+
+git remote add origin git@github.com:<your-username>/<repo-name>.git

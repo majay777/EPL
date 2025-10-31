@@ -10,7 +10,7 @@ t as (
 
 )
 
-select  distinct(e.web_name) as NAME ,et.pos_name_short as POS , t.short_name as CLUB, E.NEWS as NEWS,
+select  distinct(e.web_name) as NAME ,et.pos_name_short as POS , t.name as CLUB, E.NEWS as NEWS,
     e.news_added as NEWS_DATED, case when month(e.news_added) in (7,8, 
             9,10,12,11) then year(e.news_added):: varchar || '-' || (year(e.news_added) + 1):: varchar when 
             month(e.news_added) in (1,2,3,4,5) then 
