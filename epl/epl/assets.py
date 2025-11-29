@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from typing import Mapping, Any, Optional
-
+import duckdb
 import dagster as dg
 import dlt
 import requests
@@ -36,9 +36,15 @@ def dlt_run() -> None:
     def stream_download_jsonl(url1):
         response = requests.get(url1, stream=True)
         response.raise_for_status()  # Raise an HTTPError for bad responses
+        load_date = datetime.now().isoformat()  # or datetime.now()
         for line in response.iter_lines():
             if line:
-                yield json.loads(line)
+                item = json.loads(line.decode("utf-8"))   # Convert string → dict
+                item["load_date"] = load_date             # Now this works
+                yield item
+        # for line in response.iter_lines():
+        #     if line:
+        #         yield json.loads(line)
 
     pipeline = dlt.pipeline(
         pipeline_name="epl_duckdb",
@@ -70,7 +76,8 @@ def fixtures() -> None:
         destination=dlt.destinations.duckdb("../../EPL_New/epl_duckdb.duckdb"),
         dataset_name="epl_data",
     )
-
     # Running pipeline
     # The response contains a list of issues
     pipeline.run(stream_download_jsonl(url), table_name="Matches", write_disposition="append")
+
+

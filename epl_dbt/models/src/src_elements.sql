@@ -7,4 +7,4 @@ select * from {{ source('epl_duckdb',  'elements') }}
 )
 
 select *,{{ dbt_utils.generate_surrogate_key(['id', 'team_code', 'second_name', 'web_name']) }} as sid,
-current_date as created_at from raw_elements 
+current_date as created_at from raw_elements
