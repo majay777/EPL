@@ -1,5 +1,5 @@
 with raw_events as (
-select * from {{ source('epl_duckdb', 'events') }} where finished=True order by id
+select * from {{ source('epl_duckdb', 'events') }} where finished=True or is_current=True order by id
 )
 select distinct(id) as id, name, deadline_time, average_entry_score, finished, data_checked, highest_scoring_entry,
 deadline_time_epoch, deadline_time_game_offset, highest_score,
@@ -12,4 +12,4 @@ top_element_info__points, transfers_made, most_captained, most_vice_captained, "
                        (year(deadline_time) - 1):: varchar || '-' ||  year(deadline_time):: varchar
                        end as Season , {{ dbt_utils.generate_surrogate_key(['id', 'name', 'deadline_time']) }} as sid from
 (select *, row_number() over (partition by _dlt_list_idx order by _dlt_parent_id) as rk
-from raw_events) e where e.rk =1  and finished=True order by id
+from raw_events) e where e.rk =1  and finished=True or is_current=True  order by id
