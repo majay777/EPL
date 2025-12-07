@@ -8,41 +8,7 @@ import streamlit as st
 # -----------------------------
 # App config
 # -----------------------------
-st.markdown("""
-    <style>
-        /* Main App Background */
-        .stApp {
-            background-color: #041434;
 
-        }
-
-        /* Sidebar */
-        [data-testid="stSidebar"] {
-            background-color: #FFFFFF;
-            border-right: 2px solid #EF0107; /* Thin Arsenal Red Accent */
-        }
-        [data-testid="stSidebar"] * {
-            color: #041434 !important;  /* Dark Navy Text */
-            font-weight: 500;
-        }
-
-        /* Make widgets rounded and elegant */
-        .stButton>button, .stSelectbox, .stTextInput>div>input {
-            border-radius: 8px !important;
-        }
-
-        /* Title subtle red underline */
-        h1::after {
-            content: "";
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: #EF0107;
-            margin-top: 6px;
-            border-radius: 4px;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
 st.markdown("""
     <style>
@@ -51,9 +17,6 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
-
-
 
 st.set_page_config(page_title="⚽ FPL Dashboard", layout="wide", page_icon="⚽")
 
@@ -127,8 +90,10 @@ def load_data(path="epl_duckdb.duckdb"):
     except Exception:
         standings = pd.DataFrame()
     try:
-        players = conn.execute(
-            "SELECT distinct(web_name) as web_name, dt.name as CLUB, goals_scored, assists, minutes,dt.Season as Season, second_name, total_points, starts,event_points as Gameweek_Points, clean_sheets, Saves, cast(expected_goals as DOUBLE) as expected_goals, cast(expected_assists as DOUBLE) as expected_assists ,cast(expected_goal_involvements as DOUBLE) as expected_goal_involvements, goals_conceded,cast(expected_goals_conceded as DOUBLE) as expected_goals_conceded , own_goals, penalties_saved, penalties_missed, yellow_cards, red_cards, bonus, bps, cast(influence as DOUBLE) as influence, cast(creativity as DOUBLE) as creativity,  cast(threat as DOUBLE) as threat, cast(ict_index as DOUBLE) as ict_index, transfers_in_event, transfers_out_event, transfers_in, transfers_out FROM src_elements se inner join dim_teams dt on se.team_code = dt.code").df()
+        players = conn.execute(""" WITH elements AS (
+SELECT * FROM epl_data.epl_raw_table__elements WHERE _dlt_parent_id = (SELECT _dlt_id FROM epl_data.epl_raw_table ORDER BY load_date DESC LIMIT 1) )
+SELECT web_name,  goals_scored, assists, minutes, second_name, total_points, starts,event_points as Gameweek_Points, clean_sheets, Saves, cast(expected_goals as DOUBLE) as expected_goals, cast(expected_assists as DOUBLE) as expected_assists ,cast(expected_goal_involvements as DOUBLE) as expected_goal_involvements, goals_conceded,cast(expected_goals_conceded as DOUBLE) as expected_goals_conceded , own_goals, penalties_saved, penalties_missed, yellow_cards, red_cards, bonus, bps, cast(influence as DOUBLE) as influence, cast(creativity as DOUBLE) as creativity,  cast(threat as DOUBLE) as threat, cast(ict_index as DOUBLE) as ict_index, transfers_in_event, transfers_out_event, transfers_in, transfers_out ,  dt.name as CLUB,dt.Season as Season, FROM elements inner JOIN epl_duckdb.main.dim_teams dt   on elements.team_code = dt.code
+       """).df()
     except Exception:
         players = pd.DataFrame()
     try:
@@ -260,6 +225,9 @@ def filter_season(df):
 # -----------------------------
 # Overview Page
 # -----------------------------
+
+
+
 if page == "Overview":
     st.markdown("""
     <style>
@@ -286,11 +254,11 @@ if page == "Overview":
             st.write("No players data")
 
     with col2:
-        st.markdown("### Visual — Top 10 by Points")
+        st.markdown("### Top 10 by Points")
         dfp = filter_season(players)
         if not dfp.empty and "total_points" in dfp.columns:
             fig = px.bar(dfp.nlargest(10, "total_points"), x="web_name", y="total_points", color="CLUB",
-                         title="Top 10 by Total Points")
+                         )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No player points data to plot")
@@ -331,10 +299,17 @@ elif page == "Standings":
         st.info("Standings table not found in DB")
     else:
         df = filter_season(standings)
-        st.dataframe(df.sort_values(by=["Points", "GD"], ascending=[False, False]).reset_index(drop=True).style.set_properties(**{
-            'background-color': '#3a6073',   # Light blue background
-            'color': 'black'
-        }))
+        df = df.fillna(0)
+        float_cols = df.select_dtypes(include=['float'])
+
+        df[float_cols.columns] = float_cols.astype(int)
+
+        st.dataframe(
+            df.sort_values(by=["Points", "GD"], ascending=[False, False]).reset_index(drop=True).style.set_properties(
+                **{
+                    'background-color': '#879345',  # Light blue background
+                    'color': 'black'
+                }))
 
 # -----------------------------
 # Players Page
@@ -434,94 +409,224 @@ elif page == "Gameweek":
     average_points = safe_get(df_gw, "id", gw, "Average_Points")
     most_points = safe_get(df_gw, "id", gw, "Highest_Points")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Transfers Made", transfers_made if transfers_made is not None else "-")
-    col2.metric("Avg Points", average_points if average_points is not None else "-")
-    col3.metric("Highest Points", most_points if most_points is not None else "-")
-
-    col4, col5 = st.columns(2)
-    col4.metric("Most Captained", most_captained if most_captained is not None else "-")
-    col5.metric("Player of Week", player_of_week if player_of_week is not None else "-")
-
-    # Chips
-    st.subheader("Chips Played")
-    if df_chip is None or df_chip.empty:
-        st.info("No chip data available")
-    else:
-        chips = ["3xc", "wildcard", "bboost", "freehit"]
-        chip_cols = st.columns(len(chips))
-        for i, chip in enumerate(chips):
-            val = safe_get(df_chip, "id", gw, "num_played") if not df_chip.empty else None
-            # locate for specific chip
-            try:
-                sel = df_chip.loc[(df_chip["id"] == gw) & (df_chip["chip_name"] == chip), "num_played"]
-                v = sel.iloc[0] if not sel.empty else 0
-            except Exception:
-                v = 0
-            with chip_cols[i]:
-                st.metric(chip, v)
-
-    st.markdown("---")
-    st.subheader("Team of the Week — Pitch View 🎯")
-
-    # Filter team_of_week by selected gameweek
-    # gw = st.selectbox("Select Gameweek", gw_choices, index=0)
-    team_gw = team_of_week[team_of_week["gameweek"] == gw]
-
-    if team_gw.empty:
-        st.info("No Team of the Week available for this gameweek.")
-    else:
-        # Group by position
-
-        gk = team_gw[team_gw["POS"] == "Goalkeeper"]
-        defs = team_gw[team_gw["POS"] == "Defender"]
-        mids = team_gw[team_gw["POS"] == "Midfielder"]
-        fwds = team_gw[team_gw["POS"] == "Forward"]
-
-
-        # Function to assign evenly spaced x coordinates for a row
-        def assign_x(n):
-            return [k for k in range(1, n + 1)]
-
-
-        rows = []
-
-
-        def place_players(df_p, t):
-            if df_p.empty:
-                return
-            x_coords = assign_x(len(df_p))
-            for (z, row), x in zip(df_p.iterrows(), x_coords):
-                rows.append((x, t, f"{row['PLAYER_NAME']} ({int(row['Points'])})"))
-
-
-        place_players(fwds, 4)
-        place_players(mids, 3)
-        place_players(defs, 2)
-        place_players(gk, 1)
-
-        import plotly.graph_objects as go
-
-        fig = go.Figure()
-
-        for x, y, label in rows:
-            fig.add_trace(go.Scatter(
-                x=[x], y=[y * 5], mode="markers+text",
-                marker=dict(size=60, color="#6A0DAD"),
-                text=[label], textposition="middle center",
-                textfont=dict(color="white", size=12)
-            ))
-
-        fig.update_layout(
-            xaxis=dict(showgrid=False, zeroline=False, visible=False),
-            yaxis=dict(showgrid=False, zeroline=False, visible=False),
-            plot_bgcolor="#2E003E",
-            paper_bgcolor="#2E003E",
-            height=500,
-            margin=dict(l=0, r=0, t=20, b=20)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#008000;">Transfers Made</h3>
+                 <b>{transfers_made}</b>
+            
+            </div>
+         """, unsafe_allow_html=True
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#FF4B4B;">Most Captained</h3>
+                <b>{most_captained}</b>
+            
+            </div>
+         """, unsafe_allow_html=True
+        )
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown(
+            f"""
+        <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+            <h3 style="color:#1E90FF;">Most Transferred In</h3>
+            <b>{most_transferred_in}</b>
+           
+        </div>
+        """, unsafe_allow_html=True
+        )
+
+    with col4:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#1E90FF;">Player Of Week</h3>
+                <b>{player_of_week}</b>
+           
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    coll1, coll2 = st.columns(2)
+
+    with coll1:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#008000;">Average Points</h3>
+                <b>{average_points}</b>
+            
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    with coll2:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#FF4B4B;">Most Points</h3>
+                <b>{most_points}</b>
+            
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    result = df_chip.loc[(df_chip['id'] == gw) & (df_chip['chip_name'] == '3xc'), 'num_played']
+
+    triple_captain = result.iloc[0] if not result.empty else 0
+
+    wildcard_played = df_chip.loc[(df_chip['id'] == gw) & (df_chip['chip_name'] == 'wildcard'), 'num_played']
+    wildcard_played = wildcard_played.iloc[0] if not wildcard_played.empty else 0
+    bboost = df_chip.loc[(df_chip['id'] == gw) & (df_chip['chip_name'] == 'bboost'), 'num_played'].iloc[0]
+
+    freehit = df_chip.loc[(df_chip['id'] == gw) & (df_chip['chip_name'] == 'freehit'), 'num_played']
+    freehit = freehit.iloc[0] if not freehit.empty else 0
+
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#1E90FF;">Triple Captained Played</h3>
+                <b>{triple_captain}</b>
+               
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    with col4:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#1E90FF;">Wildcards Played</h3>
+                <b>{wildcard_played if wildcard_played is not None else "-"}</b>
+               
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    coll1, coll2 = st.columns(2)
+
+    with coll1:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#008000;">Bench Boost</h3>
+                 <b>{bboost}</b>
+                
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    with coll2:
+        st.markdown(
+            f"""
+            <div style="background-color:#000000;padding:15px;border-radius:10px;text-align:center;">
+                <h3 style="color:#FF4B4B;">Freehit</h3>
+                <b>{freehit}</b>
+                
+            </div>
+            """, unsafe_allow_html=True
+        )
+
+    # col1, col2, col3 = st.columns(3)
+    # col1.metric("Transfers Made", transfers_made if transfers_made is not None else "-")
+    # col2.metric("Avg Points", average_points if average_points is not None else "-")
+    # col3.metric("Highest Points", most_points if most_points is not None else "-")
+    #
+    # col4, col5 = st.columns(2)
+    # col4.metric("Most Captained", most_captained if most_captained is not None else "-")
+    # col5.metric("Player of Week", player_of_week if player_of_week is not None else "-")
+
+    # # Chips
+    # st.subheader("Chips Played")
+    # if df_chip is None or df_chip.empty:
+    #     st.info("No chip data available")
+    # else:
+    #     chips = ["3xc", "wildcard", "bboost", "freehit"]
+    #     chip_cols = st.columns(len(chips))
+    #     for i, chip in enumerate(chips):
+    #         val = safe_get(df_chip, "id", gw, "num_played") if not df_chip.empty else None
+    #         # locate for specific chip
+    #         try:
+    #             sel = df_chip.loc[(df_chip["id"] == gw) & (df_chip["chip_name"] == chip), "num_played"]
+    #             v = sel.iloc[0] if not sel.empty else 0
+    #         except Exception:
+    #             v = 0
+    #         with chip_cols[i]:
+    #             st.metric(chip, v)
+
+    st.markdown("---")
+    # st.subheader("Team of the Week — Pitch View 🎯")
+    #
+    # # Filter team_of_week by selected gameweek
+    # # gw = st.selectbox("Select Gameweek", gw_choices, index=0)
+    # team_gw = team_of_week[team_of_week["gameweek"] == gw]
+    #
+    # if team_gw.empty:
+    #     st.info("No Team of the Week available for this gameweek.")
+    # else:
+    #     # Group by position
+    #
+    #     gk = team_gw[team_gw["POS"] == "Goalkeeper"]
+    #     defs = team_gw[team_gw["POS"] == "Defender"]
+    #     mids = team_gw[team_gw["POS"] == "Midfielder"]
+    #     fwds = team_gw[team_gw["POS"] == "Forward"]
+    #
+    #
+    #     # Function to assign evenly spaced x coordinates for a row
+    #     def assign_x(n):
+    #         return [k for k in range(1, n + 1)]
+    #
+    #
+    #     rows = []
+    #
+    #
+    #     def place_players(df_p, t):
+    #         if df_p.empty:
+    #             return
+    #         x_coords = assign_x(len(df_p))
+    #         for (z, row), x in zip(df_p.iterrows(), x_coords):
+    #             rows.append((x, t, f"{row['PLAYER_NAME']} ({int(row['Points'])})"))
+    #
+    #
+    #     place_players(fwds, 4)
+    #     place_players(mids, 3)
+    #     place_players(defs, 2)
+    #     place_players(gk, 1)
+    #
+    #     import plotly.graph_objects as go
+    #
+    #     fig = go.Figure()
+    #
+    #     for x, y, label in rows:
+    #         fig.add_trace(go.Scatter(
+    #             x=[x], y=[y * 5], mode="markers+text",
+    #             marker=dict(size=60, color="#6A0DAD"),
+    #             text=[label], textposition="middle center",
+    #             textfont=dict(color="white", size=12)
+    #         ))
+    #
+    #     fig.update_layout(
+    #         xaxis=dict(showgrid=False, zeroline=False, visible=False),
+    #         yaxis=dict(showgrid=False, zeroline=False, visible=False),
+    #         plot_bgcolor="#2E003E",
+    #         paper_bgcolor="#2E003E",
+    #         height=500,
+    #         margin=dict(l=0, r=0, t=20, b=20)
+    #     )
+    #
+    #     st.plotly_chart(fig, use_container_width=True)
 
 
 
@@ -531,7 +636,6 @@ elif page == "Gameweek":
 elif page == "Injuries":
     st.markdown("<h2 style='color:#EEEBBC;'>Injury News 🔴</h2>", unsafe_allow_html=True)
 
-
     if injuries.empty:
         st.info("No recent injury news available")
     else:
@@ -540,8 +644,7 @@ elif page == "Injuries":
             df_inj = df_inj[df_inj["CLUB"] == team]
         df_inj = df_inj.sort_values("NEWS_DATED", ascending=False).head(40)
         for _, r in df_inj.iterrows():
-
-            st.markdown(dedent(f""" <div style="color:#643456; font-size:16px; line-height:1.55;">
+            st.markdown(dedent(f""" <div style="color:#FFFFFF; font-size:16px; line-height:1.55;">
                 {r.get('NAME', '-')} ({r.get('CLUB', '-')}) — {r.get('NEWS', '-')}  
                 {r.get('NEWS_DATED', '-')} </div>
                 """), unsafe_allow_html=True)
