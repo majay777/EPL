@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dim_players_scd2
+    description: "SCD Type 2 player dimension"
+
+    columns:
+      - name: player_sk
+        tests:
+          - unique
+          - not_null
+
+      - name: player_natural_key
+        tests:
+          - not_null
+
+      - name: valid_from
+        tests:
+          - not_null
+
+      - name: is_current
+        tests:
+          - not_null
