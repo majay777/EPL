@@ -27,30 +27,13 @@ import duckdb
 @resource
 def duckdb_resource(_):
     # Connect to DuckDB in memory or specify a database file
-    connection = duckdb.connect(database=Path(__file__).absolute().parent / "../../epl_duckdb.duckdb",
-                                read_only=False)  # Replace with your database path if needed.
+    connection = duckdb.connect(
+        database=Path(__file__).absolute().parent / "../../epl_duckdb.duckdb",
+        read_only=False,
+    )  # Replace with your database path if needed.
     yield connection
 
     # Close the connection when done
     connection.close()
 
 
-
-
-# # jobs.py
-# from dagster import job, op, get_dagster_logger
-# from .resources import duckdb_resource
-#
-# @op(required_resource_keys={'duckdb'})
-# def my_op(context):
-#     logger = get_dagster_logger()
-#     # Use the resource
-#     connection = context.resources.duckdb
-#
-#     # Example query
-#     result = connection.execute("SELECT 1 as number").fetchall()
-#     logger.info(f"Result: {result}")
-#
-# @job(resource_defs={"duckdb": duckdb_resource})
-# def my_job():
-#     my_op()

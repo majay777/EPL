@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from typing import Mapping, Any, Optional
-import duckdb
+
 import dagster as dg
 import dlt
 import requests
@@ -13,25 +13,27 @@ from .resources import dbt_project
 
 class CustomizedDagsterDbtTranslator(DagsterDbtTranslator):
     def get_asset_key(self, dbt_resource_props: Mapping[str, Any]) -> AssetKey:
-        resource_type = dbt_resource_props['resource_type']
-        name = dbt_resource_props['name']
+        resource_type = dbt_resource_props["resource_type"]
+        name = dbt_resource_props["name"]
         if resource_type == "source":
             return AssetKey(f"{name}")
         else:
             return super().get_asset_key(dbt_resource_props)
 
     def get_group_name(self, dbt_resource_props: Mapping[str, Any]) -> Optional[str]:
-        return dbt_resource_props['fqn'][1]
+        return dbt_resource_props["fqn"][1]
 
-
-@dbt_assets(manifest=dbt_project.manifest_path, dagster_dbt_translator=CustomizedDagsterDbtTranslator())
+@dbt_assets(
+    manifest=dbt_project.manifest_path,
+    dagster_dbt_translator=CustomizedDagsterDbtTranslator(),
+)
 def dbt_models(context: dg.AssetExecutionContext, dbt: DbtCliResource):
     yield from dbt.cli(["build"], context=context).stream()
 
 
-@asset(compute_kind="python", group_name='ingested')
+@asset(compute_kind="python", group_name="ingested")
 def dlt_run() -> None:
-    url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+    url = "https://fantasy.premierleague.com/api/bootstrap-static/"
 
     def stream_download_jsonl(url1):
         response = requests.get(url1, stream=True)
@@ -39,8 +41,8 @@ def dlt_run() -> None:
         load_date = datetime.now().isoformat()  # or datetime.now()
         for line in response.iter_lines():
             if line:
-                item = json.loads(line.decode("utf-8"))   # Convert string → dict
-                item["load_date"] = load_date             # Now this works
+                item = json.loads(line.decode("utf-8"))  # Convert string → dict
+                item["load_date"] = load_date  # Now this works
                 yield item
         # for line in response.iter_lines():
         #     if line:
@@ -52,10 +54,14 @@ def dlt_run() -> None:
         dataset_name="epl_data",
     )
     # The response contains a list of issues
-    pipeline.run(stream_download_jsonl(url), table_name="epl_raw_table", write_disposition="append")
+    pipeline.run(
+        stream_download_jsonl(url),
+        table_name="epl_raw_table",
+        write_disposition="append",
+    )
 
 
-@asset(deps=[dlt_run], compute_kind="python", group_name='ingested')
+@asset(deps=[dlt_run], compute_kind="python", group_name="ingested")
 def fixtures() -> None:
     """Getting information related to EPL fixtures and Match Results through API."""
 
@@ -78,6 +84,9 @@ def fixtures() -> None:
     )
     # Running pipeline
     # The response contains a list of issues
-    pipeline.run(stream_download_jsonl(url), table_name="Matches", write_disposition="append")
+    pipeline.run(
+        stream_download_jsonl(url), table_name="Matches", write_disposition="append"
+    )
+
 
 
