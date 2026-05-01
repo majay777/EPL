@@ -15,7 +15,7 @@ This project is an EPL (English Premier League) data pipeline using dbt, DuckDB,
 ## Step 1: Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/majay777/EPL
 cd EPL_New
 ```
 

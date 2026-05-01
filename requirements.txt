@@ -1,0 +1,11 @@
+duckdb~=1.4.1
+dagster~=1.11.15
+dlt~=1.17.1
+requests~=2.32.5
+dagster-dbt~=0.27.15
+setuptools~=80.9.0
+streamlit~=1.50.0
+pandas~=2.3.3
+plotly~=6.3.1
+pillow~=11.3.0
+matplotlib~=3.10.7
