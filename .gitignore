@@ -23,6 +23,7 @@ run_results.json
 dagster.logs/
 storage/
 tmp/
+.tmp_dagster_home_*
 
 # --- Python environment ---
 .venv/
@@ -50,3 +51,25 @@ Thumbs.db
 
 *.windsurf
 .bruin.yml
+
+# --- Python cache and tools ---
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.log
+
+# --- UV package manager ---
+uv.lock
+
+# --- Data files ---
+data/
+*.csv
+*.parquet
+*.json
+!package.json
+.devin
