@@ -121,6 +121,20 @@ EPL_New/
 - **Streamlit**: Interactive dashboards in `streamlit_app/`
 - **DuckDB**: Analytical database for storing transformed data
 
+## Architecture & Visualizations
+
+### Global Asset Lineage
+
+The following diagram shows the complete asset lineage across the entire data pipeline:
+
+![Global Asset Lineage](assets/Global_Asset_Lineage.svg)
+
+### dbt-Dagster Integration
+
+This diagram illustrates how dbt models integrate with Dagster orchestration:
+
+![dbt-Dagster Integration](assets/dbt-dag.png)
+
 ## Troubleshooting
 
 If you encounter issues:
