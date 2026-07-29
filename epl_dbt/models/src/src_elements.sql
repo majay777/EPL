@@ -9,11 +9,11 @@ with raw_elements as (select *
     )
    , events as (
 select *
-from {{ source ('epl_duckdb', 'events') }}
-where is_current= 'True'
+from {{ ref ('src_events') }}
+where is_current = True
     )
 
-select *, {{ dbt_utils.generate_surrogate_key(['re.id', 'team_code', 'second_name', 'web_name']) }} as sid, current_date as created_at, erte.id as event
+select re.*, {{ dbt_utils.generate_surrogate_key(['re.id', 'team_code', 'second_name', 'web_name', 'erte.Season']) }} as sid, current_date as created_at, erte.id as event, erte.Season
 from raw_elements re join
     events erte
 on re._dlt_parent_id = erte._dlt_parent_id

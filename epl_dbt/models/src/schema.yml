@@ -2,102 +2,405 @@ version: 2
 
 models:
   - name: src_chip_plays
-    description: Various chips played in a GameWeek.
+    description: Fantasy Premier League chip usage data. Tracks which special chips (Bench Boost, Free Hit, Wildcard, Triple Captain) were played by managers in each gameweek.
     columns:
+      - name: _dlt_id
+        description: Data loading tool ID for record tracking
       - name: chip_name
-        description: Name of the chip played
+        description: Name of the chip played (bboost=Bench Boost, freehit=Free Hit, wildcard=Wildcard, 3xc=Triple Captain)
         tests:
           - accepted_values:
                values: ['bboost', 'freehit', 'wildcard','3xc']
           - not_null
       - name: num_played
-        description: Number of players played this chip in this game week.
+        description: Number of players who played this chip in this gameweek
         tests:
           - not_null
+      - name: _dlt_parent_id
+        description: Data loading tool parent ID for lineage tracking
+      - name: _dlt_list_idx
+        description: Data loading tool list index for ordering
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key generated from _dlt_id and chip_name
 
 
   - name: src_element_stats
-    description: It consists of various term's used in other views.
+    description: Statistical definitions and terminology used in Fantasy Premier League. Contains labels and names for various player statistics and metrics.
     columns:
-      - name: Minutes played
-        description: Number of min's played by a player.
+      - name: label
+        description: Statistical label or category name
+      - name: name
+        description: Display name for the statistic
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key generated from label and name
 
   - name: src_element_types
-    description: Types of element's or players position.
+    description: Player position types in Fantasy Premier League. Defines position categories (Goalkeeper, Defender, Midfielder, Forward) with squad selection rules.
     columns:
+      - name: id
+        description: Position type ID
       - name: plural_name
+        description: Plural name of the position (e.g., 'Goalkeepers')
         tests:
           - not_null
+      - name: plural_name_short
+        description: Short plural name abbreviation
+      - name: pos_name
+        description: Singular position name (e.g., 'Goalkeeper')
+      - name: pos_name_short
+        description: Short position name abbreviation (e.g., 'GKP')
+      - name: per_team_sel
+        description: Number of players of this position per team allowed in squad
+      - name: per_team_min
+        description: Minimum players of this position that must play
+      - name: per_team_max
+        description: Maximum players of this position that can play
+      - name: ui_shirt_specific
+        description: Whether UI shows specific shirt for this position
+      - name: no_of_players
+        description: Total number of players in this position
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key for the position type
 
   - name: src_elements
-    description: It contains information about player's game week performance.
+    description: Core player data from Fantasy Premier League including player attributes, current gameweek performance, and pricing information. This is the main player table.
     columns:
       - name: id
+        description: Player ID from FPL system
         tests:
           - not_null
-
-      - name: second_name
-        tests:
-          - not_null
-
       - name: web_name
+        description: Player's first name/web name
         tests:
           - not_null
+      - name: second_name
+        description: Player's last name
+        tests:
+          - not_null
+      - name: first_name
+        description: Player's first name
+      - name: team
+        description: Player's team ID
+      - name: team_code
+        description: Player's team code
+      - name: element_type
+        description: Player position type ID
+      - name: now_cost
+        description: Player's current cost in FPL (in tenths, e.g., 55 = £5.5m)
+      - name: total_points
+        description: Total FPL points for the season
+      - name: minutes
+        description: Total minutes played this season
+      - name: goals_scored
+        description: Total goals scored this season
+      - name: assists
+        description: Total assists this season
+      - name: clean_sheets
+        description: Total clean sheets this season
+      - name: goals_conceded
+        description: Total goals conceded this season
+      - name: own_goals
+        description: Total own goals this season
+      - name: penalties_saved
+        description: Total penalties saved this season
+      - name: penalties_missed
+        description: Total penalties missed this season
+      - name: yellow_cards
+        description: Total yellow cards this season
+      - name: red_cards
+        description: Total red cards this season
+      - name: saves
+        description: Total saves this season
+      - name: bonus
+        description: Total bonus points this season
+      - name: bps
+        description: Total bonus point system score this season
+      - name: influence
+        description: Total influence score this season
+      - name: creativity
+        description: Total creativity score this season
+      - name: threat
+        description: Total threat score this season
+      - name: ict_index
+        description: Total ICT index score this season
+      - name: starts
+        description: Total matches started this season
+      - name: expected_goals
+        description: Total expected goals (xG) this season
+      - name: expected_assists
+        description: Total expected assists (xA) this season
+      - name: expected_goal_involvements
+        description: Total expected goal involvements this season
+      - name: expected_goals_conceded
+        description: Total expected goals conceded this season
+      - name: in_dreamteam
+        description: Whether player is in dream team
+      - name: dreamteam_count
+        description: Number of times in dream team
+      - name: value_form
+        description: Value form rating
+      - name: value_season
+        description: Value season rating
+      - name: transfers_in
+        description: Total transfers in this season
+      - name: transfers_out
+        description: Total transfers out this season
+      - name: transfers_in_event
+        description: Transfers in current gameweek
+      - name: transfers_out_event
+        description: Transfers out current gameweek
+      - name: selected_by_percent
+        description: Percentage of teams selecting this player
+      - name: chance_of_playing_next_round
+        description: Chance of playing next round (%)
+      - name: chance_of_playing_this_round
+        description: Chance of playing this round (%)
+      - name: form
+        description: Player form rating
+      - name: points_per_game
+        description: Average points per game
+      - name: ep_this
+        description: Expected points this gameweek
+      - name: ep_next
+        description: Expected points next gameweek
+      - name: special
+        description: Special status indicator
+      - name: news
+        description: Player news/injury updates
+      - name: news_added
+        description: Timestamp when news was added
+      - name: sid
+        description: Surrogate key for the player record
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: event
+        description: Current gameweek/event ID
 
   - name: src_epl_data_table
-    description: It contains various term's used in squad definition's and Fantasy draft.
+    description: General EPL/FPL game settings and configuration data. Contains squad definitions, game rules, and fantasy draft settings.
     columns:
       - name: game_settings__squad_squadsize
+        description: Squad size requirement for fantasy teams
         tests:
           - not_null
+      - name: game_settings__squad_squad_play
+        description: Number of players that can play
+      - name: game_settings__squad_squad_def
+        description: Number of defenders required
+      - name: game_settings__squad_squad_gk
+        description: Number of goalkeepers required
+      - name: game_settings__squad_squad_mid
+        description: Number of midfielders required
+      - name: game_settings__squad_squad_fwd
+        description: Number of forwards required
   - name: src_events
-    description: It records each game week info like deadline time and highest score of fantasy user.
+    description: Gameweek/event information including deadlines, scores, and aggregate FPL statistics. Contains metadata for each gameweek of the season.
     columns:
       - name: id
+        description: Event/gameweek ID
         tests:
           - not_null
+      - name: name
+        description: Event/gameweek name
+      - name: deadline_time
+        description: Transfer deadline time for the gameweek
+      - name: average_entry_score
+        description: Average score of all FPL entries
+      - name: finished
+        description: Whether the gameweek is finished
+      - name: data_checked
+        description: Whether data has been verified
+      - name: highest_scoring_entry
+        description: ID of highest scoring entry
+      - name: deadline_time_epoch
+        description: Deadline time in Unix epoch format
+      - name: deadline_time_game_offset
+        description: Game offset from deadline in hours
+      - name: highest_score
+        description: Highest score achieved in the gameweek
+      - name: is_previous
+        description: Whether this is the previous gameweek
+      - name: is_current
+        description: Whether this is the current gameweek
+      - name: is_next
+        description: Whether this is the next gameweek
+      - name: cup_leagues_created
+        description: Number of cup leagues created
+      - name: h2h_ko_matches_created
+        description: Number of head-to-head knockout matches created
+      - name: ranked_count
+        description: Number of ranked entries
+      - name: most_selected
+        description: ID of most selected player
+      - name: most_transferred_in
+        description: ID of most transferred-in player
+      - name: top_element
+        description: ID of top performing player
+      - name: top_element_info__id
+        description: ID of top element info
+      - name: top_element_info__points
+        description: Points of top performing player
+      - name: transfers_made
+        description: Total transfers made in the gameweek
       - name: most_captained
+        description: ID of most captained player
+      - name: most_vice_captained
+        description: ID of most vice-captained player
+      - name: _dlt_parent_id
+        description: Data loading tool parent ID
+      - name: _dlt_list_idx
+        description: Data loading tool list index
+      - name: _dlt_id
+        description: Data loading tool ID
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+      - name: sid
+        description: Surrogate key for the event record
         
   - name: src_game_settings_percentile_ranks
-    description: It has percentile information
+    description: Percentile rankings for various game settings and statistics. Used for comparing player performance against population percentiles.
     columns:
+      - name: element_code
+        description: Player element code
+      - name: label
+        description: Statistic label name
       - name: value
+        description: Percentile value for the statistic
+      - name: stat
+        description: Statistic identifier
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key for the record
 
 
   - name: src_phases
-    description: It has information about which game week's fall's in a month.
+    description: Season phase definitions grouping gameweeks into periods. Defines which gameweeks belong to each phase/month of the season.
     columns:
       - name: id
+        description: Phase ID
         tests:
           - not_null
       - name: name
+        description: Phase name
         tests:
           - not_null
+      - name: start_event
+        description: Starting gameweek for this phase
+      - name: stop_event
+        description: Ending gameweek for this phase
+      - name: sid
+        description: Surrogate key for the phase record
 
   - name: src_teams
-    description: This has information about teams.
+    description: Premier League team information including names, codes, and strength ratings. Contains all teams with their FPL-specific attributes.
     columns:
-      - name: name
-        tests:
-          - not_null
       - name: id
+        description: Team ID
         tests:
           - not_null
+      - name: name
+        description: Full team name
+        tests:
+          - not_null
+      - name: short_name
+        description: Short team name abbreviation
+      - name: code
+        description: Team code (3-letter abbreviation)
+      - name: strength
+        description: Overall team strength rating
+      - name: strength_overall_home
+        description: Team strength rating when playing at home
+      - name: strength_overall_away
+        description: Team strength rating when playing away
+      - name: strength_attack_home
+        description: Team attack strength rating at home
+      - name: strength_attack_away
+        description: Team attack strength rating away
+      - name: strength_defence_home
+        description: Team defence strength rating at home
+      - name: strength_defence_away
+        description: Team defence strength rating away
+      - name: pulse_id
+        description: Pulse ID for the team
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key for the team record
 
   - name: src_tiebreak_stata
-    description: Information about tie-break's.
+    description: Tiebreaker rules and statistics for league rankings. Defines how ties are broken in FPL leagues.
     columns:
       - name: value
+        description: Tiebreaker value or rule
         tests:
          - not_null
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: sid
+        description: Surrogate key for the record
   
   - name: src_matches
-    description: Results for the fixtures and which player score's a goal, assist, red-card and yellow-card information
+    description: Match fixture results and statistics. Contains match outcomes, scores, team information, and kickoff times for all Premier League fixtures.
     columns:
-     - name: finished
-       tests:
+      - name: code
+        description: Match code
+      - name: event
+        description: Gameweek/event ID
+      - name: finished
+        description: Whether the match is finished
+        tests:
         - accepted_values:
             values: ['true', 'false']
+      - name: kickoff_time
+        description: Match kickoff timestamp
+      - name: team_h
+        description: Home team ID
+      - name: team_a
+        description: Away team ID
+      - name: team_h_score
+        description: Home team score
+      - name: team_a_score
+        description: Away team score
+      - name: id
+        description: Match ID
+      - name: minutes
+        description: Match minutes played
+      - name: provisional_start_time
+        description: Provisional kickoff time
+      - name: stats
+        description: Match statistics data
+      - name: created_at
+        description: Timestamp when the record was created
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+  - name: src_elements_event
+    description: Player data joined with current event/gameweek information. Provides player attributes with the current gameweek context.
+    columns:
+      - name: id
+        description: Player ID
+      - name: web_name
+        description: Player's first name
+      - name: second_name
+        description: Player's last name
+      - name: team
+        description: Player's team ID
+      - name: team_code
+        description: Player's team code
+      - name: event
+        description: Current gameweek/event ID
+      - name: _dlt_parent_id
+        description: Data loading tool parent ID
+      - name: _dlt_list_idx
+        description: Data loading tool list index
+      - name: _dlt_id
+        description: Data loading tool ID
      
 
 

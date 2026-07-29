@@ -46,7 +46,7 @@ pipeline = dlt.pipeline(
 
 @asset(compute_kind="python", group_name="Ingest_epl_data")
 def load_epl_data():
-    pipeline.run(epl_data(), table_name="epl_raw_table", write_disposition="append")
+    pipeline.run(add_date(), table_name="epl_raw_table", write_disposition="append")
 
 
 @asset(deps=[load_epl_data], compute_kind="python", group_name="Ingest_epl_data")

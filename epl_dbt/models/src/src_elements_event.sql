@@ -1,12 +1,12 @@
 with raw_elements as (select *
                       from {{ source('epl_duckdb', 'elements')
                                }}),
-     raw_events as (select *
-                    from {{ source('epl_duckdb', 'events') }})
+     events as (select *
+                from {{ ref('src_events') }}
+                where is_current = True)
 
 
-select erte.*, erte2.id as 'event'
+select erte.*, ev.id as event, ev.Season
 from raw_elements erte
-         left join
-     raw_events erte2 on erte."_dlt_parent_id" = erte2."_dlt_parent_id"
-where erte2.is_current = True
+join
+     events ev on erte."_dlt_parent_id" = ev."_dlt_parent_id"

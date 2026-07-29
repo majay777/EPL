@@ -1,125 +1,314 @@
 version: 2
 
 models:
-  - name: dim_goals_conceded_away
-    description: Away Goals conceded a Team
-    columns:
-      - name: club
-        description: Name of Team
-        tests:
-          - unique
-          - not_null
-      - name: Season
-        descriptioin: This column indcates the the season team playing.
-        tests:
-          - not_null
-  - name: dim_goals_conceded_home
-    columns:
-      - name: club
-        tests:
-          - unique
-          - not_null
-      - name: Season
-        tests:
-          - not_null
-  - name: dim_goals_scored_away
-    columns:
-      - name: club
-        tests:
-          - unique
-          - not_null
-      - name: Season
-        tests:
-          - not_null
-  - name: dim_goals_scored_home
-    columns:
-      - name: club
-        tests:
-          - not_null
-          - unique
-      - name: Season
-        tests:
-          - not_null
   - name: dim_injury
+    description: Player injury and news information. Tracks player injury status, news updates, and associated season.
     columns:
-      - name: Name
+      - name: NAME
+        description: Player name
         tests:
           - not_null
-      - name: Club
+      - name: POS
+        description: Player position abbreviation
+      - name: CLUB
+        description: Player's club/team name
         tests:
           - not_null
+      - name: NEWS
+        description: Injury or news information about the player
+      - name: NEWS_DATED
+        description: Date when the news was added
       - name: Season
+        description: Football season in format 'YYYY-YYYY'
         tests:
           - not_null
   - name: dim_results
+    description: Match results with detailed information including scores, goal difference, points, and results for both home and away teams.
     columns:
-      - name: Away_team
+      - name: away_team_id
+        description: Away team ID (foreign key to dim_teams)
         tests:
           - not_null
-      - name: name
+      - name: event_id
+        description: Event/gameweek ID (foreign key to dim_events)
+      - name: HOME_TEAM_GOALS
+        description: Goals scored by home team
+      - name: AWAY_TEAM_GOALS
+        description: Goals scored by away team
+      - name: GD
+        description: Goal difference (away goals - home goals)
+      - name: home_team_id
+        description: Home team ID (foreign key to dim_teams)
         tests:
           - not_null
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+      - name: Points_f_Away
+        description: Points earned by away team (3 for win, 1 for draw, 0 for loss)
+      - name: Result_f_Away
+        description: Match result for away team (W/D/L)
+      - name: Result_f_Home
+        description: Match result for home team (W/D/L)
+      - name: Points_f_Home
+        description: Points earned by home team (3 for win, 1 for draw, 0 for loss)
       - name: kickoff_time
-        tests:
-          - not_null
-      - name: HOME_TEAM
+        description: Match kickoff timestamp
         tests:
           - not_null
   - name: dim_standings
+    description: League standings table showing team position based on matches played, wins, draws, losses, goals, and points.
     columns:
-      - name: TEAM
+      - name: team
+        description: Team name
         tests:
           - unique
           - not_null
+      - name: PLAYED
+        description: Total matches played
+      - name: W
+        description: Number of wins
+      - name: D
+        description: Number of draws
+      - name: L
+        description: Number of losses
+      - name: GF
+        description: Goals for (goals scored)
+      - name: GC
+        description: Goals against (goals conceded)
+      - name: GD
+        description: Goal difference (GF - GC)
+      - name: Points
+        description: Total points (3 per win, 1 per draw)
       - name: Season
+        description: Football season in format 'YYYY-YYYY'
         tests:
           - not_null
           
   - name: dim_team_goals_scored_diffrence
+    description: Combined goals scored and conceded for each team per season, with goal difference calculation.
     columns:
-      - name: Club
-        tests:
-          - not_null
-          - unique
-      - name: Season
-        tests:
-          - not_null
-  - name: dim_team_of_gameweek
-    columns:
-      - name: player_name
+      - name: team_id
+        description: Team ID from dim_teams
         tests:
           - not_null
       - name: club
+        description: Team name
         tests:
           - not_null
-      - name: gameweek
-        tests:
-          - not_null
+      - name: Goals_Scored
+        description: Total goals scored (home + away)
+      - name: Goals_conceded
+        description: Total goals conceded (home + away)
+      - name: Goal_difference
+        description: Goal difference (Goals_Scored - Goals_conceded)
       - name: Season
+        description: Football season in format 'YYYY-YYYY'
         tests:
           - not_null
-      
-  - name: dim_transfers_in_gameweek
+  - name: dim_team_of_gameweek
+    description: Best performing players of the gameweek by position. Includes top goalkeeper and top 10 outfield players based on points.
     columns:
-      - name: Name
+      - name: POS
+        description: Player position
+        tests:
+          - not_null
+      - name: PLAYER_NAME
+        description: Player name
+        tests:
+          - not_null
+      - name: club
+        description: Player's club
+        tests:
+          - not_null
+      - name: Points
+        description: Points scored in the gameweek
+      - name: gameweek
+        description: Gameweek number
         tests:
           - not_null
       - name: Season
+        description: Football season in format 'YYYY-YYYY'
         tests:
           - not_null
-          
-      - name: gameweek
-        tests:
-          - not_null
-  - name: dim_transfers_out_gameweek
+  - name: dim_transfers_gameweek
+    description: Consolidated transfer data for gameweeks combining transfers in and out by position.
     columns:
-      - name: Name
+      - name: POS
+        description: Player position abbreviation
+        tests:
+          - not_null
+      - name: NAME
+        description: Player name
+        tests:
+          - not_null
+      - name: CLUB
+        description: Player's club
+      - name: transfer_type
+        description: Type of transfer ('IN' or 'OUT')
+        tests:
+          - not_null
+      - name: transfer_count
+        description: Number of transfers
+      - name: gameweek
+        description: Gameweek number
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+  - name: dim_team_goals
+    description: Consolidated team goals data combining home/away goals scored and conceded by team and season.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - team_id
+            - Season
+            - is_home
+    columns:
+      - name: team_id
+        description: Team ID from dim_teams
+        tests:
+          - not_null
+      - name: club
+        description: Team name
         tests:
           - not_null
       - name: Season
+        description: Football season in format 'YYYY-YYYY'
         tests:
           - not_null
-          
-      - name: gameweek
+      - name: is_home
+        description: Whether this is home (true) or away (false) data
         tests:
           - not_null
+      - name: goals_scored
+        description: Goals scored in this context
+      - name: goals_conceded
+        description: Goals conceded in this context
+  - name: dim_chip_played
+    description: Fantasy Premier League chip usage statistics per gameweek. Tracks which chips (like Bench Boost, Triple Captain) were played and how many times.
+    columns:
+      - name: chip_name
+        description: Name of the FPL chip played
+      - name: num_played
+        description: Number of times the chip was played
+      - name: id
+        description: Event/gameweek ID
+      - name: name
+        description: Event/gameweek name
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+  - name: dim_events
+    description: Gameweek/event information including deadlines, scores, and FPL statistics. Contains metadata for each gameweek of the season.
+    columns:
+      - name: sid
+        description: Source ID from the data pipeline
+      - name: id
+        description: Event/gameweek ID
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+      - name: name
+        description: Event/gameweek name
+      - name: deadline_time
+        description: Deadline time for transfers
+      - name: average_entry_score
+        description: Average score of all FPL entries
+      - name: finished
+        description: Whether the gameweek is finished
+      - name: data_checked
+        description: Whether data has been checked/verified
+      - name: highest_scoring_entry
+        description: ID of highest scoring entry
+      - name: deadline_time_epoch
+        description: Deadline time in epoch format
+      - name: deadline_time_game_offset
+        description: Game offset from deadline
+      - name: highest_score
+        description: Highest score in the gameweek
+      - name: is_previous
+        description: Whether this is the previous gameweek
+      - name: is_current
+        description: Whether this is the current gameweek
+      - name: is_next
+        description: Whether this is the next gameweek
+      - name: cup_leagues_created
+        description: Number of cup leagues created
+      - name: h2h_ko_matches_created
+        description: Number of head-to-head knockout matches created
+      - name: ranked_count
+        description: Number of ranked entries
+      - name: most_selected
+        description: ID of most selected player
+      - name: most_transferred_in
+        description: ID of most transferred-in player
+      - name: top_element
+        description: ID of top performing player
+      - name: top_element_info__id
+        description: ID of top element info
+      - name: top_element_info__points
+        description: Points of top performing player
+      - name: transfers_made
+        description: Total transfers made
+      - name: most_captained
+        description: ID of most captained player
+      - name: most_vice_captained
+        description: ID of most vice-captained player
+      - name: _dlt_parent_id
+        description: Data loading tool parent ID
+      - name: _dlt_list_idx
+        description: Data loading tool list index
+      - name: _dlt_id
+        description: Data loading tool ID
+  - name: dim_gameweek_info
+    description: Summary statistics for each gameweek including average points, highest points, and top performing players.
+    columns:
+      - name: id
+        description: Event/gameweek ID
+      - name: name
+        description: Event/gameweek name
+      - name: Average_Points
+        description: Average entry score for the gameweek
+      - name: Highest_Points
+        description: Highest score achieved in the gameweek
+      - name: Points
+        description: Points of top performing player
+      - name: Gameweek_Transfers
+        description: Total transfers made in the gameweek
+      - name: Most_Transferred_In
+        description: Name of most transferred-in player
+      - name: Most_Selected
+        description: Name of most selected player
+      - name: Most_Captained
+        description: Name of most captained player
+      - name: Most_Points
+        description: Name of player with most points
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+  - name: dim_teams
+    description: Team information including names, codes, strength ratings, and season. Contains all Premier League teams with their attributes.
+    columns:
+      - name: sid
+        description: Source ID from the data pipeline
+      - name: name
+        description: Full team name
+      - name: short_name
+        description: Short team name abbreviation
+      - name: code
+        description: Team code
+      - name: id
+        description: Team ID
+      - name: strength
+        description: Overall team strength rating
+      - name: strength_overall_home
+        description: Team strength rating at home
+      - name: strength_overall_away
+        description: Team strength rating away
+      - name: strength_attack_home
+        description: Team attack strength at home
+      - name: strength_attack_away
+        description: Team attack strength away
+      - name: strength_defence_home
+        description: Team defence strength at home
+      - name: strength_defence_away
+        description: Team defence strength away
+      - name: pulse_id
+        description: Pulse ID for the team
+      - name: season
+        description: Football season in format 'YYYY-YYYY'

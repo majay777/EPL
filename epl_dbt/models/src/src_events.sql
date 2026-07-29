@@ -29,11 +29,6 @@ select distinct(id) as          id,
                "_dlt_parent_id",
                "_dlt_list_idx",
                "_dlt_id",
-               case when month (deadline_time) in (8,
-                       9,10,12,11) then year(deadline_time):: varchar || '-' || (year(deadline_time) + 1):: varchar when
-                       month(deadline_time) in (1,2,3,4,5) then
-                       (year(deadline_time) - 1):: varchar || '-' ||  year(deadline_time):: varchar
-end
-as Season , {{ dbt_utils.generate_surrogate_key(['id', 'name', 'deadline_time']) }} as sid from
+               {{ calculate_season('deadline_time') }} as Season , {{ dbt_utils.generate_surrogate_key(['id', 'name', 'deadline_time']) }} as sid from
 (select *, row_number() over (partition by _dlt_list_idx order by _dlt_parent_id) as rk
 from raw_events) e where e.rk =1  and finished=True or is_current=True  order by id

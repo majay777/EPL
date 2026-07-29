@@ -2,22 +2,171 @@ version: 2
 
 models:
   - name: dim_players_scd2
-    description: "SCD Type 2 player dimension"
-
+    description: SCD Type 2 player dimension tracking player attributes over time with history. Maintains current and historical records of player information including club, cost, minutes, and starts.
     columns:
       - name: player_sk
+        description: Surrogate key for the player record (unique identifier)
         tests:
           - unique
           - not_null
-
       - name: player_natural_key
+        description: Natural key from source system (player ID from FPL)
         tests:
           - not_null
-
+      - name: web_name
+        description: Player's first name/web name
+      - name: second_name
+        description: Player's last name
+      - name: club
+        description: Player's current club/team
+      - name: cost
+        description: Player's current cost in FPL
+      - name: minutes
+        description: Total minutes played
+      - name: starts
+        description: Number of matches started
       - name: valid_from
+        description: Timestamp when this record became valid
         tests:
           - not_null
-
+      - name: valid_to
+        description: Timestamp when this record expired (null for current record)
       - name: is_current
+        description: Whether this is the current active record
         tests:
           - not_null
+  - name: fact_players_info
+    description: Player performance information per match including detailed statistics, results, and transfer activity. Contains comprehensive player stats for each gameweek.
+    columns:
+      - name: opponent_team_id
+        description: Opponent team ID (foreign key to dim_teams)
+      - name: player_id
+        description: Unique identifier for the player-season combination
+      - name: event_id
+        description: Event/gameweek ID (foreign key to dim_events)
+      - name: web_name
+        description: Player's first name
+      - name: second_name
+        description: Player's last name
+      - name: club_team_id
+        description: Player's club team ID (foreign key to dim_teams)
+      - name: result
+        description: Match result (W/D/L)
+      - name: Gameweek_Points
+        description: Points scored in the gameweek
+      - name: total_points
+        description: Total FPL points for the season
+      - name: starts
+        description: Number of matches started
+      - name: minutes
+        description: Minutes played in the match
+      - name: goals_scored
+        description: Goals scored in the match
+      - name: assists
+        description: Assists provided in the match
+      - name: expected_goals
+        description: Expected goals (xG) metric
+      - name: expected_assists
+        description: Expected assists (xA) metric
+      - name: expected_goal_involvements
+        description: Expected goal involvements (xG + xA)
+      - name: clean_sheets
+        description: Clean sheets achieved
+      - name: goals_conceded
+        description: Goals conceded (for defenders/keepers)
+      - name: expected_goals_conceded
+        description: Expected goals conceded metric
+      - name: own_goals
+        description: Own goals scored
+      - name: penalties_saved
+        description: Penalties saved (for goalkeepers)
+      - name: penalties_missed
+        description: Penalties missed
+      - name: yellow_cards
+        description: Yellow cards received
+      - name: red_cards
+        description: Red cards received
+      - name: saves
+        description: Saves made (for goalkeepers)
+      - name: bonus
+        description: Bonus points awarded
+      - name: bps
+        description: Bonus point system score
+      - name: influence
+        description: FPL influence score
+      - name: creativity
+        description: FPL creativity score
+      - name: threat
+        description: FPL threat score
+      - name: ict_index
+        description: FPL ICT (Influence, Creativity, Threat) index
+      - name: Net_Transfer
+        description: Net transfers (transfers in - transfers out)
+      - name: Strength_bench
+        description: Bench strength indicator
+      - name: COST
+        description: Player's current cost
+      - name: Season
+        description: Football season in format 'YYYY-YYYY'
+  - name: fct_player_match_performance
+    description: Fact table tracking player performance at the match level with detailed statistics. Links players to matches and events with comprehensive performance metrics.
+    columns:
+      - name: fact_sk
+        description: Surrogate key for the fact record
+        tests:
+          - unique
+          - not_null
+      - name: player_natural_key
+        description: Player's natural key from source system
+      - name: player_sk
+        description: Reference to player dimension surrogate key
+      - name: event_id
+        description: Event/gameweek ID
+      - name: event_name
+        description: Event/gameweek name
+      - name: match_id
+        description: Match ID
+      - name: matched_at
+        description: Match kickoff timestamp
+      - name: opponent_team_id
+        description: Opponent team ID (foreign key to dim_teams)
+      - name: club_team_id
+        description: Player's club team ID (foreign key to dim_teams)
+      - name: result
+        description: Match result (W/D/L)
+      - name: gameweek_points
+        description: Points scored in the gameweek
+      - name: total_points
+        description: Total FPL points for the season
+      - name: minutes
+        description: Minutes played in the match
+      - name: starts
+        description: Number of matches started
+      - name: goals_scored
+        description: Goals scored in the match
+      - name: assists
+        description: Assists provided in the match
+      - name: expected_goals
+        description: Expected goals (xG) metric
+      - name: expected_assists
+        description: Expected assists (xA) metric
+      - name: clean_sheets
+        description: Clean sheets achieved
+      - name: goals_conceded
+        description: Goals conceded (for defenders/keepers)
+      - name: bonus
+        description: Bonus points awarded
+      - name: bps
+        description: Bonus point system score
+      - name: influence
+        description: FPL influence score
+      - name: creativity
+        description: FPL creativity score
+      - name: threat
+        description: FPL threat score
+      - name: ict_index
+        description: FPL ICT (Influence, Creativity, Threat) index
+      - name: cost
+        description: Player's current cost
+      - name: updated_at
+        description: Timestamp when the record was last updated

@@ -34,7 +34,7 @@ with matches as (select *
      final as (select
     {{ dbt_utils.generate_surrogate_key([
     'el.id', 'm.id', 'ev.id'
-    ]) }} as fact_sk, el.id as player_natural_key, p.player_sk, ev.id as event_id, ev.name as event_name, m.id as match_id, m.kickoff_time as matched_at, t_opp.name as opponent, t_club.name as club, case
+    ]) }} as fact_sk, el.id as player_natural_key, p.player_sk, ev.id as event_id, ev.name as event_name, m.id as match_id, m.kickoff_time as matched_at, t_opp.id as opponent_team_id, t_club.id as club_team_id, case
     when m.team_h_score = m.team_a_score then 'D'
     when el.team = m.team_h and m.team_h_score > m.team_a_score then 'W'
     when el.team = m.team_a and m.team_a_score > m.team_h_score then 'W'
